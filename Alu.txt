@@ -1,0 +1,107 @@
+module ALU (
+    input [3:0] A,        // 4-bit input A
+    input [3:0] B,        // 4-bit input B
+    input [2:0] opcode,   // 3-bit opcode to select operation
+    output reg [3:0] result, // 4-bit result of the operation
+    output reg carry_out, // carry out for addition/subtraction
+    output reg zero       // zero flag
+);
+    
+    always @ (A, B, opcode) begin
+        case (opcode)
+            3'b000: begin // ADDITION
+                {carry_out, result} = A + B;
+            end
+            3'b001: begin // SUBTRACTION
+                {carry_out, result} = A - B;
+            end
+            3'b010: begin // AND
+                result = A & B;
+                carry_out = 0; // No carry for AND operation
+            end
+            3'b011: begin // OR
+                result = A | B;
+                carry_out = 0; // No carry for OR operation
+            end
+            3'b100: begin // NOT
+                result = ~A; // NOT only operates on A
+                carry_out = 0; // No carry for NOT operation
+            end
+            default: begin
+                result = 4'b0000;
+                carry_out = 0;
+            end
+        endcase
+        
+        // Set zero flag
+        if (result == 4'b0000)
+            zero = 1;
+        else
+            zero = 0;
+    end
+    
+endmodule
+// Code your testbench here
+// or browse Examples
+module ALU_tb;
+
+    // Inputs
+    reg [3:0] A;
+    reg [3:0] B;
+    reg [2:0] opcode;
+
+    // Outputs
+    wire [3:0] result;
+    wire carry_out;
+    wire zero;
+
+    // Instantiate the ALU
+    ALU uut (
+        .A(A),
+        .B(B),
+        .opcode(opcode),
+        .result(result),
+        .carry_out(carry_out),
+        .zero(zero)
+    );
+
+    // Test cases
+    initial begin
+        // Test ADDITION
+        A = 4'b0011; B = 4'b0101; opcode = 3'b000; // 3 + 5
+        #10;
+        
+        // Test SUBTRACTION
+        A = 4'b0101; B = 4'b0011; opcode = 3'b001; // 5 - 3
+        #10;
+        
+        // Test AND
+        A = 4'b1100; B = 4'b1010; opcode = 3'b010; // 1100 & 1010
+        #10;
+        
+        // Test OR
+        A = 4'b1100; B = 4'b1010; opcode = 3'b011; // 1100 | 1010
+        #10;
+        
+        // Test NOT
+        A = 4'b1100; opcode = 3'b100; // NOT 1100
+        #10;
+        
+        // Test ZERO FLAG
+        A = 4'b0000; B = 4'b0000; opcode = 3'b000; // 0 + 0
+        #10;
+        
+        // Test with different inputs
+        A = 4'b1111; B = 4'b0001; opcode = 3'b001; // 15 - 1
+        #10;
+        
+        $finish;  // End the simulation
+    end
+
+    // Display results
+    initial begin
+        $monitor("Time = %0t | A = %b | B = %b | Opcode = %b | Result = %b | Carry = %b | Zero = %b",
+                 $time, A, B, opcode, result, carry_out, zero);
+    end
+
+endmodule
